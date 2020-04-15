@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title></title>
+<th:block th:fragment="commonElement">
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+<script type="text/javascript">
+	var csrf = $('meta[name="_csrf"]').attr('content');
+	var header = $("meta[name='_csrf_header']").attr("content");	
+</script>
+</th:block>
+</head>
+<body>
+
+</body>
+</html>

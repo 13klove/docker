@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html layout:decorator="templateView/loginLayout" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+<meta charset="UTF-8">
+<title></title>
+</head>
+<body>
+<th:block layout:fragment="content">
+    <div class="card o-hidden border-0 shadow-lg my-5">
+	      <div class="card-body p-0">
+	        <!-- Nested Row within Card Body -->
+	        <div class="row">
+	          <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+	          <div class="col-lg-7">
+	            <div class="p-5">
+	              <div class="text-center">
+	                <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
+	              </div>
+	              <form id="regForm" onsubmit="return false;" class="user">
+	                <div class="form-group row">
+	                  <div class="col-sm-6 mb-3 mb-sm-0">
+	                    <input type="text" class="form-control form-control-user" id="name" name="name" placeholder="Name">
+	                  </div>
+	                  <div class="col-sm-6">
+	                    <input type="email" class="form-control form-control-user" id="mail" name="mail" placeholder="Email Address">
+	                  </div>
+	                </div>
+	                <div class="form-group row">
+	                	<div class="col-sm-6 mb-3 mb-sm-0">
+	                  		<input type="text" class="form-control form-control-user" id="hp" name="hp" placeholder="HP">
+	                  	</div>
+						<div class="col-sm-6">
+							<a id="hpConfirmBtn" href="#" class="btn btn-danger btn-user btn-block">Hp 인증</a>
+							<span class="small" id="timer"></span>
+	                  	</div>
+	                </div>	 
+	                <div id="hpCode" class="form-group row" style="display: none">
+	                	<div class="col-sm-6 mb-3 mb-sm-0">
+	                  		<input type="text" class="form-control form-control-user" id="code" name="code" placeholder="CODE">
+	                  	</div>
+						<div class="col-sm-3">
+							<a id="codeRetryBtn" href="#" class="btn btn-danger btn-user btn-block">재요청</a>						
+	                  	</div>
+						<div class="col-sm-3">
+							<a id="codeConfirmBtn" href="#" class="btn btn-primary btn-user btn-block">코드 인증</a>						
+	                  	</div>	                  	
+	                </div>	                               
+	                <div class="form-group row">
+	                  <div class="col-sm-6 mb-3 mb-sm-0">
+	                    <input type="text" class="form-control form-control-user" id="id" name="id" placeholder="ID">
+	                  </div>
+						<div class="col-sm-6">
+							<a id="idConfirmBtn" href="#" class="btn btn-danger btn-user btn-block">ID 중복확인</a>						
+	                  	</div>	                  
+	                </div>	                
+	                <div class="form-group row">
+	                  <div class="col-sm-6 mb-3 mb-sm-0">
+	                    <input type="password" class="form-control form-control-user" id="password" name="password" placeholder="Password">
+	                  </div>
+	                  <div class="col-sm-6">
+	                    <input type="password" class="form-control form-control-user" id="rePassword" name="rePassword" placeholder="Repeat Password">
+	                  </div>
+	                </div>
+	                <a id="regBtn" href="#" class="btn btn-primary btn-user btn-block">
+	                  Register Account
+	                </a>
+<!-- 	                <hr>
+	                <a href="index.html" class="btn btn-google btn-user btn-block">
+	                  <i class="fab fa-google fa-fw"></i> Register with Google
+	                </a>
+	                <a href="index.html" class="btn btn-facebook btn-user btn-block">
+	                  <i class="fab fa-facebook-f fa-fw"></i> Register with Facebook
+	                </a> -->
+	              </form>
+	              <hr>
+	              <div class="text-center">
+	                <a class="small" href="/loginPage">Already have an account? Login!</a>
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+	      </div>
+      </div>
+<script type="text/javascript">
+$(document).ready(function(){
+/* 	function $ComTimer(){
+	    //prototype extend
+	}
+
+	$ComTimer.prototype = {
+	    comSecond : ""
+	    , fnCallback : function(){}
+	    , timer : ""
+	    , domId : ""
+	    , fnTimer : function(){
+	        var m = Math.floor(this.comSecond / 60) + "분 " + (this.comSecond % 60) + "초";	// 남은 시간 계산
+	        this.comSecond--;					// 1초씩 감소
+	        this.domId.innerText = m;
+	        if (this.comSecond < 0) {			// 시간이 종료 되었으면..
+	            clearInterval(this.timer);		// 타이머 해제
+	            alert("인증시간이 초과하였습니다. 다시 인증해주시기 바랍니다.")
+	        }
+	    }
+	    ,fnStop : function(){
+	        clearInterval(this.timer);
+	    }
+	}
+	
+	var AuthTimer = new $ComTimer()
+	AuthTimer.comSecond = 5;
+	AuthTimer.fnCallback = function(){alert("다시인증을 시도해주세요.")}
+	AuthTimer.timer =  setInterval(function(){AuthTimer.fnTimer()},1000);
+	AuthTimer.domId = document.getElementById("timer"); */
+	
+	//1. 변수
+	var hpFlag = false;
+	var idFlag = false;
+	//2. 함수
+	var vaEvent = function(msg, icon){
+		Swal.fire({
+			  title: msg,
+			  timer: 1500,
+			  showConfirmButton: false,
+			  icon: icon
+		});
+	};
+	
+	var setCsrfHeader = function(obj){
+		obj.setRequestHeader(header, csrf);
+	};
+	
+	var hpConfirmEvnet = function(){
+		var orHp = $("#hp").val();
+		var reHp = $("#hp").val().replace(/[^0-9]/g,"");
+		if(orHp != reHp || reHp.length == 0){
+			vaEvent("Check your Hp", "error");
+			return false;
+		}
+		
+		if(orHp.length != 11){
+			vaEvent("Check your Hp", "error");
+			return false;
+		}
+		
+		$.ajax({
+			beforeSend: function(obj){
+				setCsrfHeader(obj);
+			},
+			url: "/regist/hpCheck",
+			data: JSON.stringify({hp: orHp}),
+			type: "post",
+			contentType: "application/json",
+			success: function(data){
+				$("#hpCode").show();
+			}
+		});
+		
+	}
+	
+	var regEvent = function(){
+		var formData = $("#regForm").serializeObject();
+
+ 		if(formData.name.trim() == "" || formData.name.trim().length == 0){
+			vaEvent("Write your name", "error");
+			return false;
+		}
+		
+		if(formData.mail.trim() == "" || formData.mail.trim().length == 0){
+			vaEvent("Write your mail", "error");
+			return false;
+		}
+		
+		if(formData.hp.trim() == "" || formData.hp.trim().length == 0){
+			vaEvent("Write your hp", "error");
+			return false;
+		}
+		
+		if(formData.password.trim() == "" || formData.password.trim().length == 0){
+			vaEvent("Write your password", "error");
+			return false;
+		}else if(formData.password != formData.rePassword){
+			vaEvent("Different Password", "error");
+			return false;			
+		}
+		
+		$.ajax({
+			beforeSend: setCsrfHeader(xhr),
+			type: "post",
+			url: "/regist/reg",
+			data: JSON.stringify(formData),
+			contentType: "application/json", 
+			success: function(data){
+				if(typeof data.httpStatus != "undefined" && typeof data.msg != "undefined"){
+					vaEvent(data.msg, "error");
+				}
+			}
+		});
+		
+	}
+	
+	var onlyNumberEvet = function(){
+		$(this).val($(this).val().replace(/[^0-9]/g,""));
+	}
+	
+	var certificationEvent = function(){
+		var code = $("#code").val().replace(/#/gi, "");
+		if(code.length == 0){
+			vaEvent("Write your hp code", "error");
+			return false;
+		}
+		
+		$.ajax({
+			beforeSend: function(xhr){
+				setCsrfHeader(xhr);
+			},
+			type: "post",
+			url: "/regist/codeComfirm",
+			data: JSON.stringify({hpCode: code}),
+			contentType: "application/json",
+			success: function(data){
+				if(data){
+					vaEvent("Hp Check Ok", "success");
+					$("#hpCode").hide();
+					hpFlag = true;
+				}else{
+					vaEvent("Check your Msg Code", "error");
+					hpFlag = false;
+				}
+			}
+		});
+	}
+	
+	var idConfirmEvnet = function(){
+		var id = $("#id").val().replace(" ", "");
+		
+		if(id.length < 5 || id.length > 15){
+			vaEvent("Check your Id", "error");
+			idFlag = false;
+			return false;
+		}
+		
+		$.ajax({
+			beforeSend: setCsrfHeader,
+			type: "post",
+			url: "/regist/idCheck",
+			data: JSON.stringify({id: id}),
+			contentType: "application/json",
+			success: function(data){
+				console.log(data);
+				if(data){
+					vaEvent("Hp Check Ok", "success");
+					idFlag = true;
+				}else{
+					vaEvent("", "error");
+					idFlag = false;
+				}
+			}
+		});
+	}
+	
+
+	//4. 바인딩
+	$("#regBtn").click(regEvent);
+	$("#hpConfirmBtn").click(hpConfirmEvnet);
+	$("#hp").on("keyup", onlyNumberEvet);
+	$("#codeConfirmBtn").click(certificationEvent);
+	$("#idConfirmBtn").click(idConfirmEvnet);
+	//5. 초기화
+});
+</script>      
+</th:block>
+</body>
+</html>

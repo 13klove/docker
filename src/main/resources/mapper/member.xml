@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MemberRepository">
+	
+	<resultMap id="MemberMap" type="com.gdev.boot.domain.member.MemberVo">
+		<id property="id" column="ID"/>
+		<result property="password" column="PASSWORD"/>
+		<result property="roleGroup" column="ROLE_GROUP"/>
+	</resultMap>
+	
+	<sql id="select">
+		SELECT ID, PASSWORD, ROLE_GROUP FROM MEMBER
+	</sql>
+
+	<insert id="insert"  parameterType="com.gdev.boot.domain.member.MemberVo">
+		INSERT INTO MEMBER (ID, PASSWORD, ROLE_GROUP) VALUES (#{id}, #{password}, #{roleGroup})
+	</insert>
+	
+	<select id="selectAll" resultMap="MemberMap">
+		<include refid="select"/>
+	</select>	
+	
+	<select id="finduUserById" resultMap="MemberMap">
+		<include refid="select"/>
+		WHERE ID = #{id}
+	</select>
+	
+ </mapper>
